@@ -13,8 +13,8 @@ int multi_thread(unsigned int port);
 int main()
 {
 
-    multi_process(12333);
+    // multi_process(12333);
     
-    // multi_thread(12333);
+    multi_thread(12333);
     return 0;
 }
