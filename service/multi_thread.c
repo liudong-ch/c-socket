@@ -6,16 +6,18 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
+#include <pthread.h>
 
-void handle_client(int c_socket);
 
 
-int multi_process(unsigned int port) {
+void *thread_handle(void*);
+
+int multi_thread(unsigned int port) {
     int s_socket, c_socket;
     struct sockaddr_in server_add, client_add2;
     int s_add_len = sizeof(server_add);
     socklen_t c_add_len = sizeof(client_add2);
-    pid_t pid, pp;
+    pthread_t tid;
 
 
     s_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -32,7 +34,7 @@ int multi_process(unsigned int port) {
     int r = bind(s_socket, (struct sockaddr *)&server_add, s_add_len);
     if (r == -1) {
         printf("绑定socket失败--%s\n", strerror(errno));
-        // close(s_socket);
+        close(s_socket);
         exit(EXIT_FAILURE);
     }
 
@@ -42,8 +44,10 @@ int multi_process(unsigned int port) {
         exit(EXIT_FAILURE);
     }
     
-    printf("服务正在运行...\n");
+    char cli_ip[INET_ADDRSTRLEN];
+    
 
+    printf("服务正在运行...\n");
     while(1) {
         struct sockaddr_in client_add;
         c_socket = accept(s_socket, (struct sockaddr *)&client_add, &c_add_len);
@@ -52,25 +56,24 @@ int multi_process(unsigned int port) {
             continue;
         }
 
-        pid = fork();
-        if (pid == -1) {
-            printf("创建进程失败\n");
+        int ret = pthread_create(&tid, NULL, thread_handle, (void *)&c_socket);
+        if (ret) {
+            printf("创建线程失败%s\n", strerror(errno));
+            close(c_socket);
             continue;
         }
-        if (pid == 0) {
-            close(s_socket);
-            printf("正在准备接收数据\n");
-            handle_client(c_socket);
-            break;
-        } else {
-            close(c_socket);
-        }
+        
+        inet_ntop(AF_INET, &client_add.sin_addr, cli_ip, INET_ADDRSTRLEN);
+        printf("连接成功...主机地址：%s:%d\n", cli_ip, ntohs(client_add.sin_port));
+
+        pthread_detach(tid);
 
     }
     return 0;
 }
 
-void handle_client(int c_socket) {
+void *thread_handle(void *arg) {
+    int c_socket = *((int *)arg);
     char buffer[5*1024];
     int recv_size;
     char msg[2*2014];
@@ -107,4 +110,3 @@ void handle_client(int c_socket) {
     close(c_socket);
 
 }
-
