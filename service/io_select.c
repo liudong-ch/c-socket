@@ -18,7 +18,7 @@ void io_select(unsigned int port) {
     struct sockaddr_in server_add, client_add2;
     int s_add_len = sizeof(server_add);
     socklen_t c_add_len = sizeof(client_add2);
-    fd_set readfds, nfds;
+    fd_set readfds, testfds;
 
 
     s_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -52,7 +52,12 @@ void io_select(unsigned int port) {
     printf("服务正在运行...\n");
     while(1) {
 
-        int ret = select();
+        testfds = readfds;
+        int ret = select(FD_SETSIZE, &testfds, (fd_set *)0, (fd_set *)0, (struct timeval *)0);
+        if (ret < 1) {
+            printf("select 失败\n");
+            exit(EXIT_FAILURE);
+        }
         
 
         struct sockaddr_in client_add;
