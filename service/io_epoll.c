@@ -14,7 +14,7 @@
 #include <sys/resource.h>
 
 
-int io_select(unsigned int port) {
+int io_epoll(unsigned int port) {
     int s_socket, c_socket_fd, epollfd, events;
     struct sockaddr_in server_add, client_add2;
     int s_add_len = sizeof(server_add);
@@ -142,10 +142,4 @@ int io_select(unsigned int port) {
 
 
     return 0;
-}
-
-int get_addr(int fd, struct sockaddr_in *client_add) {
-    struct sockaddr_in client_add;
-    int c_add_len = sizeof(client_add);
-    getpeername(fd, (struct sockaddr *)client_add, &c_add_len);
 }
