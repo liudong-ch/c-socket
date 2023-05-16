@@ -6,7 +6,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <sys/wait.h>
-#include <pthread.h>
 #include <fcntl.h>
 #include <sys/types.h>
 #include <unistd.h>

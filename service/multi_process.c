@@ -17,7 +17,6 @@ int multi_process(unsigned int port) {
     socklen_t c_add_len = sizeof(client_add2);
     pid_t pid, pp;
 
-
     s_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (s_socket == -1) {
         printf("socket 创建失败\n");
@@ -51,25 +50,28 @@ int multi_process(unsigned int port) {
             printf("接受连接失败\n");
             continue;
         }
-
+        // 创建进程，会复制父进程的所有代码和文件描述符，
+        // 子进程的代码执行和父进程完全一致。子进程中 pid返回 0
         pid = fork();
         if (pid == -1) {
             printf("创建进程失败\n");
             continue;
         }
         if (pid == 0) {
+            // 子进程 处理逻辑
             close(s_socket);
             printf("正在准备接收数据\n");
             handle_client(c_socket);
             break;
         } else {
+            // 父进程 处理逻辑
             close(c_socket);
         }
 
     }
     return 0;
 }
-
+// 连接处理函数
 void handle_client(int c_socket) {
     char buffer[5*1024];
     int recv_size;
