@@ -10,6 +10,7 @@
 int multi_process(unsigned int port);
 int multi_thread(unsigned int port);
 int io_select(unsigned int port);
+int io_epoll(unsigned int port);
 
 int main()
 {
@@ -18,7 +19,9 @@ int main()
     
     // multi_thread(12333);
 
-    io_select(12333);
+    // io_select(12333);
+
+    io_epoll(12333);
 
     return 0;
 }
