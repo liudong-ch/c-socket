@@ -46,6 +46,7 @@ int io_epoll(unsigned int port) {
         exit(EXIT_FAILURE);
     }
 
+    // 创建epoll
     if ((epollfd = epoll_create(512)) < 0) {
         printf("epoll creat 失败\n");
         exit(EXIT_FAILURE);
@@ -53,7 +54,7 @@ int io_epoll(unsigned int port) {
     
     event.events = EPOLLIN | EPOLLET | EPOLLHUP;
     event.data.fd = s_socket;
-
+    // 添加epoll的fd的事件监听类型
     if (epoll_ctl(epollfd, EPOLL_CTL_ADD, s_socket, &event) < 0) {
         printf("epoll ctl 失败\n");
         exit(EXIT_FAILURE);
@@ -66,7 +67,7 @@ int io_epoll(unsigned int port) {
     printf("服务正在运行...\n");
 
     while(1) {
-
+        // 等待监听的事件发生
         events = epoll_wait(epollfd, evlist, 512, -1);
         if (events <= 0) {
             printf("epoll wait 失败\n");
@@ -74,20 +75,19 @@ int io_epoll(unsigned int port) {
         }
 
         int i;
-
-
         for (i = 0; i < events; i++) {
+            // 连接断开、报错
             if (evlist[i].events & EPOLLHUP || evlist[i].events & EPOLLERR) {
                 struct sockaddr_in client_add;
                 int c_add_len = sizeof(client_add);
                 getpeername(evlist[i].data.fd, (struct sockaddr *)&client_add, &c_add_len);
                 printf("断开连接...主机地址：%s:%d\n", inet_ntoa(client_add.sin_addr), ntohs(client_add.sin_port));
-
+                // 删除fd的事件监听，关闭fd
                 epoll_ctl(epollfd, EPOLL_CTL_DEL, evlist[i].data.fd, NULL);
                 close(evlist[i].data.fd);
                 continue;
 
-            } else if (evlist[i].data.fd == s_socket) {
+            } else if (evlist[i].data.fd == s_socket) {    // 新连接到达
                 struct sockaddr_in client_add;
                 c_socket_fd = accept(s_socket, (struct sockaddr *)&client_add, &c_add_len);
                 if (c_socket_fd == -1) {
@@ -105,13 +105,13 @@ int io_epoll(unsigned int port) {
 
                 printf("连接成功...主机地址：%s:%d\n", inet_ntoa(client_add.sin_addr), ntohs(client_add.sin_port));
 
-            } else if (evlist[i].events & EPOLLIN) {
+            } else if (evlist[i].events & EPOLLIN) {    // 客户端，连接有可读事件
                 struct sockaddr_in client_add;
                 int c_add_len = sizeof(client_add);
                 getpeername(evlist->data.fd, (struct sockaddr *)&client_add, &c_add_len);
 
-                recv_size = recv(evlist->data.fd, buffer, 5*1024, 0);
-                if (recv_size <= 0) {
+                recv_size = recv(evlist->data.fd, buffer, 5*1024, 0);    // 读数据
+                if (recv_size <= 0) {    // 删除fd的事件监听，关闭fd
                     epoll_ctl(epollfd, EPOLL_CTL_DEL, evlist[i].data.fd, NULL);
                     close(evlist[i].data.fd);
                     printf("断开连接...主机地址：%s:%d\n", inet_ntoa(client_add.sin_addr), ntohs(client_add.sin_port));
@@ -132,7 +132,7 @@ int io_epoll(unsigned int port) {
                 sleep(1);
                 int msg_size = sprintf(msg, "收到数据，长度：%d", recv_size);
 
-                send(evlist[i].data.fd, msg, msg_size, 0);
+                send(evlist[i].data.fd, msg, msg_size, 0);    // 发送数据
             }
 
 
