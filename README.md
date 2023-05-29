@@ -7,13 +7,21 @@ linux的socket编程，io多路复用，select、poll、epoll使用
 
 ## 文件目录
 client 文件夹：
+
   client.c：客户端文件代码
+
   main.c：客户端启动入口
+
 service 文件夹：
+
   main.c：服务端启动入口
+
   multi_process.c：多进程版socket
+
   multi_thread.c：多线程版socket
+
   io_select.c：多路复用select版
+  
   io_epoll.c：多路复用epoll版
 
 ## 测试方式
